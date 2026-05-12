@@ -21,7 +21,7 @@ The page reads the hash on load, listens for `hashchange`, and persists the last
 
 - **No registry of benches.** Anyone can mint a bench ID by writing one in a QR. We make no attempt to namespace or reserve names — the human factor of "is there already a `park-bench-A` sticker in some city?" is the user's problem. Collisions are mostly harmless (you'd just join their archive too).
 - **The QR sticker has to encode the full URL**, not just the ID. Stickers are usually printed with a URL-encoding QR generator and don't need a special protocol.
-- **No discovery**. You only find a bench's archive by scanning *that* bench's sticker (or knowing its ID from a friend).
+- **No discovery**. You only find a bench's archive by scanning _that_ bench's sticker (or knowing its ID from a friend).
 
 ## Alternatives considered
 

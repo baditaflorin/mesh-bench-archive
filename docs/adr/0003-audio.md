@@ -8,6 +8,7 @@ date: 2026-05-11
 ## Context
 
 We need to store voice clips that:
+
 - Survive across users coming and going.
 - Don't survive forever — when the room empties, the archive should evaporate.
 - Don't require a server.
