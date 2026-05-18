@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { InviteShareButton } from "@baditaflorin/mesh-common";
+import { InviteShareButton, MeshBeacon } from "@baditaflorin/mesh-common";
 import { Bench } from "./features/bench/Bench";
 import { SettingsDrawer } from "./features/settings/SettingsDrawer";
 import { appConfig } from "./shared/config";
@@ -29,6 +29,7 @@ export function App() {
       <Bench benchId={benchId} />
 
       <InviteShareButton appName={appConfig.appName} roomId={benchId} />
+      <MeshBeacon app={appConfig.appName} room={benchId} />
 
       <button
         type="button"
