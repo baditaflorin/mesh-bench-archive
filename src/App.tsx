@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react";
+import { InviteShareButton } from "@baditaflorin/mesh-common";
 import { Bench } from "./features/bench/Bench";
 import { SettingsDrawer } from "./features/settings/SettingsDrawer";
 import { appConfig } from "./shared/config";
@@ -26,6 +27,8 @@ export function App() {
   return (
     <div className="app-root">
       <Bench benchId={benchId} />
+
+      <InviteShareButton appName={appConfig.appName} roomId={benchId} />
 
       <button
         type="button"
