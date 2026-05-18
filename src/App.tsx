@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
-import { InviteShareButton, MeshBeacon } from "@baditaflorin/mesh-common";
+import { MeshShell } from "@baditaflorin/mesh-common";
 import { Bench } from "./features/bench/Bench";
-import { SettingsDrawer } from "./features/settings/SettingsDrawer";
+import { SettingsExtras } from "./features/settings/SettingsExtras";
 import { appConfig } from "./shared/config";
 
 function readBenchId(): string {
@@ -12,7 +12,6 @@ function readBenchId(): string {
 
 export function App() {
   const [benchId, setBenchId] = useState(() => readBenchId());
-  const [settingsOpen, setSettingsOpen] = useState(false);
 
   useEffect(() => {
     localStorage.setItem(`${appConfig.storagePrefix}:lastBench`, benchId);
@@ -24,45 +23,20 @@ export function App() {
     return () => window.removeEventListener("hashchange", onHash);
   }, []);
 
+  const handleBenchChange = (next: string) => {
+    const safe = next || "demo-bench";
+    window.location.hash = safe;
+    setBenchId(safe);
+  };
+
   return (
-    <div className="app-root">
+    <MeshShell
+      config={appConfig}
+      roomId={benchId}
+      onRoomChange={handleBenchChange}
+      settingsExtras={<SettingsExtras benchId={benchId} />}
+    >
       <Bench benchId={benchId} />
-
-      <InviteShareButton appName={appConfig.appName} roomId={benchId} />
-      <MeshBeacon app={appConfig.appName} room={benchId} />
-
-      <button
-        type="button"
-        className="settings-fab"
-        onClick={() => setSettingsOpen(true)}
-        aria-label="Open settings"
-      >
-        ⚙
-      </button>
-
-      <div className="self-ref">
-        <a href={appConfig.repositoryUrl} target="_blank" rel="noreferrer">
-          source
-        </a>
-        <span aria-hidden="true">·</span>
-        <a href={appConfig.paypalUrl} target="_blank" rel="noreferrer">
-          tip ♥
-        </a>
-        <span aria-hidden="true">·</span>
-        <span>
-          v{appConfig.version} · {appConfig.commit}
-        </span>
-      </div>
-
-      <SettingsDrawer
-        open={settingsOpen}
-        onClose={() => setSettingsOpen(false)}
-        benchId={benchId}
-        onBenchChange={(next) => {
-          window.location.hash = next;
-          setBenchId(next);
-        }}
-      />
-    </div>
+    </MeshShell>
   );
 }

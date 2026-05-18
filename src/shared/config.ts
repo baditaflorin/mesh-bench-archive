@@ -1,6 +1,9 @@
 export const appConfig = {
   appName: "mesh-bench-archive",
   storagePrefix: "mesh-bench-archive",
+  description:
+    "Peer-to-peer mesh: voice notes tied to a place. Scan a QR sticker on a bench, hear the last visitors. Audio lives only in browsers that have scanned.",
+  accentHex: "#d8b85a",
   version: __APP_VERSION__,
   commit: __GIT_COMMIT__,
   repositoryUrl: "https://github.com/baditaflorin/mesh-bench-archive",
