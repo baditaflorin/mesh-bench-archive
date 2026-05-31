@@ -36,6 +36,41 @@ export function Bench({ benchId }: Props) {
     return { room, yClips };
   }, [armed, benchId]);
 
+  // Push a finished clip into the shared Yjs array, enforcing the FIFO cap.
+  // Both the real MediaRecorder path and the headless test hook funnel through
+  // here so they exercise the identical cross-peer shared-state mutation.
+  const publishClip = (clip: Clip) => {
+    if (!mesh) return;
+    mesh.room.doc.transact(() => {
+      if (mesh.yClips.length >= MAX_CLIPS) {
+        mesh.yClips.delete(0, mesh.yClips.length - MAX_CLIPS + 1);
+      }
+      mesh.yClips.push([clip]);
+    });
+  };
+
+  // Headless / desktop fallback: drive the advertised "leave a voice note"
+  // action without real microphone hardware. The cross-peer e2e test calls
+  // this so the assertion exercises the same Yjs propagation a real recording
+  // would — a real device still uses the MediaRecorder path below.
+  useEffect(() => {
+    if (!mesh) return undefined;
+    const hook = (payload?: { mime?: string; data?: string }) => {
+      const clip: Clip = {
+        id: crypto.randomUUID(),
+        ts: Date.now(),
+        mime: payload?.mime ?? "audio/webm",
+        data: payload?.data ?? "",
+      };
+      publishClip(clip);
+      return clip.id;
+    };
+    (window as unknown as { __benchPublishClip?: typeof hook }).__benchPublishClip = hook;
+    return () => {
+      delete (window as unknown as { __benchPublishClip?: typeof hook }).__benchPublishClip;
+    };
+  }, [mesh]);
+
   useEffect(() => {
     if (!armed) return;
     void maybeFetchTurnCredentials();
@@ -99,13 +134,7 @@ export function Bench({ benchId }: Props) {
           mime: rec.mimeType,
           data,
         };
-        // Trim to MAX_CLIPS
-        if (mesh.yClips.length >= MAX_CLIPS) {
-          mesh.room.doc.transact(() => {
-            mesh.yClips.delete(0, mesh.yClips.length - MAX_CLIPS + 1);
-          });
-        }
-        mesh.yClips.push([clip]);
+        publishClip(clip);
       };
       rec.start();
       mediaRecorderRef.current = rec;
@@ -172,7 +201,7 @@ export function Bench({ benchId }: Props) {
         {peers + 1} listening
       </div>
 
-      <div className="bench-clips">
+      <div className="bench-clips" data-testid="bench-clips" data-clip-count={clips.length}>
         {clips.length === 0 && (
           <p className="bench-empty">No clips yet. Be the first to leave a note.</p>
         )}
@@ -180,6 +209,8 @@ export function Bench({ benchId }: Props) {
           <button
             key={c.id}
             type="button"
+            data-testid="bench-clip"
+            data-clip-id={c.id}
             className={`bench-clip ${playing === c.id ? "playing" : ""}`}
             onClick={() => playClip(c)}
           >

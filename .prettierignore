@@ -3,3 +3,8 @@ docs/assets
 docs/index.html
 docs/404.html
 package-lock.json
+# Fleet docs are propagated verbatim from services-registry — not app-owned,
+# and a concurrent fleet sync rewrites them, so don't gate the build on their
+# formatting.
+CLAUDE.md
+SERVICE-TEMPLATE.md
