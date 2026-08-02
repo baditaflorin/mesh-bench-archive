@@ -29,6 +29,32 @@ The bench ID (e.g. `mesh-bench-archive:park-bench-A`) and encrypted SDP offers/a
 
 Encrypted DTLS bytes when peers can't connect directly. It cannot decrypt your audio.
 
+## What the analytics beacon sees (this is not audio or the P2P mesh)
+
+Separately from the WebRTC mesh above, every page load fires a 1×1 pixel
+request to `https://pixel.0exec.com/pix.gif` (shared fleet-wide analytics
+run by the same operator as this app). This is standalone HTTP tracking, not
+part of the peer-to-peer archive — it happens even before you tap "Open this
+bench's archive," and it is a real exception to "no server stores anything."
+
+The request includes:
+
+- `app` — this app's id (`mesh-bench-archive`).
+- `room` — **the bench ID from the URL hash, up to 64 characters** (e.g.
+  `park-bench-A`). Because the bench ID is exactly the place label printed on
+  the sticker, this is a location proxy: the server operator can see which
+  physical bench was opened and when, even without GPS.
+- `peer` — the first 12 characters of your session's peer id, if the room has
+  connected.
+- `inviter`, app version, `document.referrer`, and a timestamp.
+- Your IP address, inherent to any HTTP request (not explicitly logged by the
+  app, but visible to the server the same way it is for any web request).
+
+This beacon can be turned off per device via Settings → "Opt out of anonymous
+pageview pings," and it is skipped automatically when the browser sends
+Do-Not-Track. It is unrelated to voice-note transport and never touches audio
+data or the Yjs document.
+
 ## Permission asked
 
 `navigator.mediaDevices.getUserMedia({ audio: true })`. The browser shows the "microphone in use" indicator while you're recording.

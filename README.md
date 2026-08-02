@@ -28,7 +28,15 @@ When everyone who scanned the bench eventually closes their browser, the archive
 
 ## Privacy threat model
 
-See [docs/privacy.md](docs/privacy.md). What's on the wire: your audio (encrypted in transit via WebRTC DTLS, then sitting in Yjs on other connected phones). No name, no location data, no identity.
+See [docs/privacy.md](docs/privacy.md). What's on the wire in the peer-to-peer
+mesh: your audio (encrypted in transit via WebRTC DTLS, then sitting in Yjs on
+other connected phones). No name, no GPS, no persistent identity in that
+channel.
+
+Separately, opening the page fires an anonymous pageview beacon (opt-out in
+Settings) that does send the bench ID — see
+[docs/privacy.md § analytics beacon](docs/privacy.md#what-the-analytics-beacon-sees-this-is-not-audio-or-the-p2p-mesh)
+for exactly what it carries.
 
 ## Architecture
 
