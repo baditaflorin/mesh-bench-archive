@@ -1,16 +1,10 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import { createRoomSync } from "../sync/yjsRoom";
 import { maybeFetchTurnCredentials } from "../sync/iceConfig";
+import { enforceClipCap, pushClipCapped, type Clip } from "./clipCap";
 
 const MAX_CLIP_MS = 30_000;
 const MAX_CLIPS = 30;
-
-type Clip = {
-  id: string;
-  ts: number;
-  mime: string;
-  data: string; // base64
-};
 
 type Props = {
   benchId: string;
@@ -39,14 +33,14 @@ export function Bench({ benchId }: Props) {
   // Push a finished clip into the shared Yjs array, enforcing the FIFO cap.
   // Both the real MediaRecorder path and the headless test hook funnel through
   // here so they exercise the identical cross-peer shared-state mutation.
+  //
+  // See clipCap.ts for why this alone isn't sufficient under concurrent
+  // writers — the yClips.observe(refresh) effect below also calls
+  // enforceClipCap so overshoot from simultaneous publishes on other peers
+  // self-heals as soon as the merge is observed, not just on the next publish.
   const publishClip = (clip: Clip) => {
     if (!mesh) return;
-    mesh.room.doc.transact(() => {
-      if (mesh.yClips.length >= MAX_CLIPS) {
-        mesh.yClips.delete(0, mesh.yClips.length - MAX_CLIPS + 1);
-      }
-      mesh.yClips.push([clip]);
-    });
+    pushClipCapped(mesh.room.doc, mesh.yClips, clip, MAX_CLIPS);
   };
 
   // Headless / desktop fallback: drive the advertised "leave a voice note"
@@ -85,6 +79,10 @@ export function Bench({ benchId }: Props) {
   useEffect(() => {
     if (!mesh) return undefined;
     const refresh = () => {
+      // Self-heal: this fires for local pushes AND remote merges, so any
+      // cap overshoot from concurrent publishers on other peers gets
+      // trimmed as soon as this peer observes the converged state.
+      enforceClipCap(mesh.room.doc, mesh.yClips, MAX_CLIPS);
       const arr = mesh.yClips
         .toArray()
         .slice()
